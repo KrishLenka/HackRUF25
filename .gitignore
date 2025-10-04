@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment variables
+.env
+.env.local
+
+# Large data files (don't commit to git)
+backend/data/train/*
+backend/data/val/*
+backend/data/test/*
+backend/data/Healthy\ Skin/
+backend/data/vitiligo/
+!backend/data/train/.gitkeep
+!backend/data/val/.gitkeep
+!backend/data/test/.gitkeep
+
+# Model outputs (too large for git)
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.h5
+backend/models/*.onnx
+backend/models/*.pb
+!backend/models/.gitkeep
+
+# Training outputs
+backend/checkpoints/*.pth
+backend/checkpoints/*.pt
+!backend/checkpoints/.gitkeep
+
+backend/logs/*.png
+backend/logs/*.txt
+backend/logs/*.json
+!backend/logs/.gitkeep
+
+backend/evaluation/*.png
+backend/evaluation/*.txt
+backend/evaluation/*.json
+!backend/evaluation/.gitkeep
+
+# Database
+backend/db/*
+!backend/db/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
