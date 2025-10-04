@@ -60,7 +60,13 @@ CLASS_NAMES = [
     "Warts Molluscum and other Viral Infections"
 ]
 IMG_SIZE = 224
-DEVICE = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+# Automatically detect best available device: NVIDIA CUDA > Apple Silicon MPS > CPU
+if torch.cuda.is_available():
+    DEVICE = "cuda"
+elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    DEVICE = "mps"
+else:
+    DEVICE = "cpu"
 # ---------------------------
 
 app = Flask(__name__)
@@ -106,7 +112,18 @@ def prepare_for_onnx(img_np: np.ndarray) -> np.ndarray:
 # ---------------------------
 # Model loaders
 # ---------------------------
-print("Loading models...")
+print("="*70)
+print("INITIALIZING SKIN CONDITION CLASSIFIER API")
+print("="*70)
+print(f"Device: {DEVICE.upper()}")
+if DEVICE == "cuda":
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
+elif DEVICE == "mps":
+    print(f"GPU: Apple Silicon (MPS)")
+else:
+    print(f"GPU: Not available - using CPU")
+print("="*70)
+print("\nLoading models...")
 
 # 1) TensorFlow / Keras
 tf_model = None

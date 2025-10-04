@@ -149,6 +149,19 @@ def evaluate_model(model, dataloader, device, classes):
 def main():
     config = Config()
     
+    # Print device info
+    print(f"\n{'='*60}")
+    print(f"MODEL EVALUATION")
+    print(f"{'='*60}")
+    print(f"Device: {config.device.upper()}")
+    if config.device == "cuda":
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+    elif config.device == "mps":
+        print(f"GPU: Apple Silicon (MPS)")
+    else:
+        print(f"Using CPU")
+    print(f"{'='*60}\n")
+    
     # Check if test directory exists
     if not config.test_dir.exists():
         print(f"Error: Test directory not found: {config.test_dir}")

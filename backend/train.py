@@ -46,13 +46,16 @@ class Config:
     # Augmentation
     use_augmentation = True
     
-    # Device (supports CUDA, Apple Silicon MPS, or CPU)
+    # Device (automatically detects: NVIDIA CUDA, Apple Silicon MPS, or CPU)
     if torch.cuda.is_available():
         device = "cuda"
-    elif torch.backends.mps.is_available():
+        gpu_name = torch.cuda.get_device_name(0)
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
         device = "mps"  # Apple Silicon GPU
+        gpu_name = "Apple Silicon"
     else:
         device = "cpu"
+        gpu_name = "CPU only"
     
     # Output
     output_dir = Path("models")
@@ -354,12 +357,26 @@ def main(args):
         print("    unhealthy/")
         return
     
-    print(f"Device: {config.device}")
-    print(f"Model: {config.model_name}")
+    # Print device information
+    print(f"\n{'='*60}")
+    print(f"TRAINING CONFIGURATION")
+    print(f"{'='*60}")
+    print(f"Device: {config.device.upper()}")
+    if config.device == "cuda":
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    elif config.device == "mps":
+        print(f"GPU: Apple Silicon (Metal Performance Shaders)")
+    else:
+        print(f"GPU: Not available - using CPU")
+    print(f"\nModel: {config.model_name}")
     print(f"Number of classes: {config.num_classes}")
+    print(f"Image size: {config.img_size}x{config.img_size}")
     print(f"Batch size: {config.batch_size}")
     print(f"Learning rate: {config.learning_rate}")
     print(f"Epochs: {config.num_epochs}")
+    print(f"Workers: {config.num_workers}")
+    print(f"{'='*60}\n")
     
     # Get transforms
     train_transform, val_transform = get_transforms(config.img_size, config.use_augmentation)
@@ -376,12 +393,15 @@ def main(args):
     )
     
     # Create dataloaders
+    # Pin memory only for CUDA to speed up transfer to GPU
+    use_pin_memory = (config.device == "cuda")
+    
     train_loader = DataLoader(
         train_dataset,
         batch_size=config.batch_size,
         shuffle=True,
         num_workers=config.num_workers,
-        pin_memory=True
+        pin_memory=use_pin_memory
     )
     
     val_loader = DataLoader(
@@ -389,7 +409,7 @@ def main(args):
         batch_size=config.batch_size,
         shuffle=False,
         num_workers=config.num_workers,
-        pin_memory=True
+        pin_memory=use_pin_memory
     )
     
     # Create model
