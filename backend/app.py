@@ -30,9 +30,37 @@ TF_MODEL_PATH = MODEL_DIR / "tf_skin_model"    # either SavedModel dir or .h5
 PYTORCH_MODEL_PATH = MODEL_DIR / "pt_skin_model.pth"
 ONNX_MODEL_PATH = MODEL_DIR / "onnx_skin_model.onnx"
 
-CLASS_NAMES = ["benign", "nevus", "melanoma", "bcc", "seborrheic_keratosis"]  # adapt to your labels
+# Load class names from training (will be auto-populated during training)
+# Default classes for the 25-class skin condition dataset
+CLASS_NAMES = [
+    "Acne and Rosacea Photos",
+    "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
+    "Atopic Dermatitis Photos",
+    "Bullous Disease Photos",
+    "Cellulitis Impetigo and other Bacterial Infections",
+    "Eczema Photos",
+    "Exanthems and Drug Eruptions",
+    "Hair Loss Photos Alopecia and other Hair Diseases",
+    "Healthy_Skin",
+    "Herpes HPV and other STDs Photos",
+    "Light Diseases and Disorders of Pigmentation",
+    "Lupus and other Connective Tissue diseases",
+    "Melanoma Skin Cancer Nevi and Moles",
+    "Nail Fungus and other Nail Disease",
+    "Poison Ivy Photos and other Contact Dermatitis",
+    "Psoriasis pictures Lichen Planus and related diseases",
+    "Scabies Lyme Disease and other Infestations and Bites",
+    "Seborrheic Keratoses and other Benign Tumors",
+    "Systemic Disease",
+    "Tinea Ringworm Candidiasis and other Fungal Infections",
+    "Urticaria Hives",
+    "Vascular Tumors",
+    "Vasculitis Photos",
+    "vitiligo",
+    "Warts Molluscum and other Viral Infections"
+]
 IMG_SIZE = 224
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 # ---------------------------
 
 app = Flask(__name__)
@@ -97,14 +125,14 @@ pt_model = None
 try:
     # Define the same architecture you trained. Example using timm EfficientNet_b0:
     class PTWrapper(torch.nn.Module):
-        def __init__(self, model_name="efficientnet_b0", n_classes=len(CLASS_NAMES), pretrained=False):
+        def __init__(self, model_name="efficientnet_b0", n_classes=len(CLASS_NAMES), pretrained=False, dropout=0.3):
             super().__init__()
             self.backbone = timm.create_model(model_name, pretrained=pretrained, num_classes=0, global_pool='avg')
             feat = self.backbone.num_features
             self.head = torch.nn.Sequential(
                 torch.nn.Linear(feat, 512),
                 torch.nn.ReLU(inplace=True),
-                torch.nn.Dropout(0.3),
+                torch.nn.Dropout(dropout),
                 torch.nn.Linear(512, n_classes)
             )
         def forward(self, x):
@@ -112,7 +140,7 @@ try:
             x = self.head(x)
             return x
 
-    pt_model = PTWrapper(model_name="efficientnet_b0", n_classes=len(CLASS_NAMES), pretrained=False)
+    pt_model = PTWrapper(model_name="efficientnet_b0", n_classes=len(CLASS_NAMES), pretrained=False, dropout=0.3)
     state = torch.load(str(PYTORCH_MODEL_PATH), map_location=DEVICE)
     # if saved with checkpoint dict:
     if isinstance(state, dict) and "model_state_dict" in state:
@@ -225,28 +253,84 @@ def ensemble_predict(probs_list: List[np.ndarray], class_names: List[str]) -> Di
     }
 
 # ---------------------------
-# Advice mapping - customize
+# Advice mapping - customize for 25 classes
 # ---------------------------
-ADVICE = {
-    "melanoma": {
-        "short": "Suspicious — see dermatologist promptly for dermoscopic evaluation and possible biopsy.",
-        "urgency": "high"
+def get_advice(condition_name):
+    """Generate advice based on condition name with intelligent fallback"""
+    
+    # High urgency conditions (malignant/serious)
+    high_urgency_keywords = [
+        "malignant", "melanoma", "carcinoma", "cancer", "lesion"
+    ]
+    
+    # Medium urgency (infectious, inflammatory)
+    medium_urgency_keywords = [
+        "infection", "bacterial", "fungal", "viral", "herpes", "hiv", "std",
+        "cellulitis", "impetigo", "vasculitis", "lupus"
+    ]
+    
+    # Low urgency (benign, cosmetic)
+    low_urgency_keywords = [
+        "benign", "healthy", "keratoses", "hair loss", "alopecia",
+        "pigmentation", "vitiligo"
+    ]
+    
+    condition_lower = condition_name.lower()
+    
+    # Check for high urgency
+    if any(keyword in condition_lower for keyword in high_urgency_keywords):
+        return {
+            "short": f"Possible {condition_name}. Immediate dermatologist consultation recommended for evaluation and possible biopsy.",
+            "urgency": "high",
+            "recommendation": "Schedule urgent dermatology appointment"
+        }
+    
+    # Check for medium urgency
+    elif any(keyword in condition_lower for keyword in medium_urgency_keywords):
+        return {
+            "short": f"{condition_name} detected. Medical evaluation recommended for diagnosis and treatment.",
+            "urgency": "medium",
+            "recommendation": "Schedule dermatology appointment within 1-2 weeks"
+        }
+    
+    # Check for healthy skin
+    elif "healthy" in condition_lower:
+        return {
+            "short": "Skin appears healthy. Continue regular skin checks and sun protection.",
+            "urgency": "low",
+            "recommendation": "Maintain routine skin care and monitoring"
+        }
+    
+    # Low urgency or general case
+    else:
+        return {
+            "short": f"Possible {condition_name}. Consider dermatology consultation for proper diagnosis and management.",
+            "urgency": "medium",
+            "recommendation": "Schedule dermatology appointment if symptoms persist or worsen"
+        }
+
+
+# Specific advice for known conditions (optional override)
+SPECIFIC_ADVICE = {
+    "Healthy_Skin": {
+        "short": "Skin appears healthy. Continue regular monitoring and sun protection.",
+        "urgency": "low",
+        "recommendation": "Maintain good skin care routine"
     },
-    "bcc": {
-        "short": "Basal cell carcinoma possible — arrange dermatology visit; likely local excision.",
-        "urgency": "high"
+    "Melanoma Skin Cancer Nevi and Moles": {
+        "short": "URGENT: Possible melanoma or suspicious mole. Immediate dermatologist evaluation required.",
+        "urgency": "high",
+        "recommendation": "Schedule URGENT dermatology appointment for biopsy"
     },
-    "seborrheic_keratosis": {
-        "short": "Likely benign seborrheic keratosis — consider dermatology if symptomatic or cosmetic concern.",
-        "urgency": "low"
+    "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions": {
+        "short": "URGENT: Possible malignant lesion. Immediate dermatologist evaluation required.",
+        "urgency": "high",
+        "recommendation": "Schedule URGENT dermatology appointment"
     },
-    "nevus": {
-        "short": "Common nevus — monitor for changes (size, color, border). See dermatologist if changes occur.",
-        "urgency": "medium"
-    },
-    "benign": {
-        "short": "Likely benign. Monitor and consult clinician if changes or symptoms appear.",
-        "urgency": "low"
+    "vitiligo": {
+        "short": "Vitiligo detected - a skin condition causing loss of pigmentation. Consult dermatologist for treatment options.",
+        "urgency": "low",
+        "recommendation": "Schedule dermatology appointment for management options"
     }
 }
 
@@ -307,9 +391,12 @@ def predict():
     # Build ensemble
     ensemble = ensemble_predict(probs_list, CLASS_NAMES)
 
-    # Advice
+    # Advice - use specific advice if available, otherwise generate intelligent advice
     label = ensemble["ensemble_class"]
-    advice = ADVICE.get(label, {"short": "No specific advice available.", "urgency": "unknown"})
+    if label in SPECIFIC_ADVICE:
+        advice = SPECIFIC_ADVICE[label]
+    else:
+        advice = get_advice(label)
 
     response = {
         "prediction": label,
