@@ -3,132 +3,38 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
-import { 
-  Upload, 
-  X, 
-  Activity, 
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Search,
-  MessageCircle,
-  Library
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Upload, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 
-const Header = () => {
-  return (
-    <header className="bg-white border-b-2 border-blue-800">
-      
-  {/* Main Header */}
-  <div className="w-full px-4">
-        <div className="flex items-center justify-between py-4">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-800 flex items-center justify-center mr-4">
-              <Activity className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-blue-800 leading-tight">
-                Skindex
-              </h1>
-              <p className="text-sm text-gray-600 leading-tight">
-                Your trusted AI dermatology consultant
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Navigation */}
-        <nav className="border-t border-gray-300 py-2">
-          <div className="flex space-x-8 text-sm">
-            {/* Home removed - defaults to Image Analysis */}
-            <Link 
-              to="/" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-blue-800"
-            >
-              <Upload className="w-4 h-4 inline mr-2" />
-              Image Analysis
-            </Link>
-            {/* Clinical Assistant removed */}
-            <Link 
-              to="/library" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-transparent hover:border-blue-800"
-            >
-            </Link>
-          </div>
-        </nav>
-      </div>
-    </header>
-  );
-};
 
-/*
-const Sidebar = () => {
-  return (
-    <aside className="w-64 bg-gray-100 border-r border-gray-300">
-      <div className="p-4">
-        <h3 className="font-bold text-gray-800 text-sm mb-4 uppercase tracking-wide">
-          Analysis Tools
-        </h3>
-        <ul className="space-y-2 text-sm">
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1 font-medium">
-              Image Upload & Analysis
-                  <div className="w-full px-4">
-          </li>
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Batch Processing
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Historical Results
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Export Reports
-            </a>
-          </li>
-        </ul>
-        
-        <h3 className="font-bold text-gray-800 text-sm mb-4 mt-6 uppercase tracking-wide">
-          Guidelines
-        </h3>
-        <ul className="space-y-2 text-sm">
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Image Quality Standards
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Diagnostic Criteria
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-blue-800 hover:underline block py-1">
-              Privacy Compliance
-            </a>
-          </li>
-        </ul>
-      </div>
-    </aside>
-  );
-};
-*/
+// map backend 'urgency' to a severity label for your UI
+function mapUrgencyToSeverity(urgency) {
+  switch ((urgency || '').toLowerCase()) {
+    case 'urgent-dermatologist':
+    case 'high':
+      return 'High';
+    case 'book-dermatologist':
+    case 'telederm':
+    case 'medium':
+      return 'Moderate';
+    case 'self-monitor':
+    case 'low':
+    default:
+      return 'Low';
+  }
+}
 
 const ImageUpload = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [error, setError] = useState('');
   const fileInputRef = useRef(null);
   const analysisRef = useRef(null);
   const [previewExpanded, setPreviewExpanded] = useState(true);
 
   const handleImageUpload = (event) => {
+    setError('');
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -142,61 +48,99 @@ const ImageUpload = () => {
         setAnalysisResult(null);
       };
       reader.readAsDataURL(file);
+    } else {
+      setUploadedImage(null);
+      setError('Please choose a valid image file (JPEG/PNG/TIFF).');
     }
   };
 
-  const handleAnalyze = () => {
-    if (!uploadedImage) return;
-    
+  // Real backend call
+  const handleAnalyze = async () => {
+    if (!uploadedImage?.file) return;
+  
     setIsAnalyzing(true);
-    setAnalysisProgress(0);
-    
-    // Simulate analysis progress
+    setError('');
+    setAnalysisResult(null);
+    setAnalysisProgress(5);
+  
     const interval = setInterval(() => {
-      setAnalysisProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsAnalyzing(false);
-          // Mock analysis result
-          setAnalysisResult({
-            condition: "Atopic Dermatitis (Eczema)",
-            icd10: "L20.9",
-            confidence: 87,
-            severity: "Moderate",
-            description: "Chronic inflammatory skin condition characterized by pruritic, erythematous lesions with scaling and lichenification.",
-            recommendations: [
-              "Topical corticosteroids (moderate potency) - Apply twice daily to affected areas",
-              "Emollient therapy - Liberal use of fragrance-free moisturizers",
-              "Trigger avoidance - Identify and avoid known allergens and irritants",
-              "Follow-up consultation recommended within 2-3 weeks"
-            ],
-            areas: ["Antecubital fossa", "Dorsal forearm"],
-            differentialDx: [
-              "Contact dermatitis",
-              "Seborrheic dermatitis", 
-              "Psoriasis"
-            ],
-            additionalTests: [
-              "Patch testing if contact allergy suspected",
-              "KOH prep to rule out fungal infection"
-            ]
-          });
-          return 100;
-        }
-        return prev + Math.random() * 15;
+      setAnalysisProgress((p) => (p < 90 ? p + Math.random() * 10 : p));
+    }, 250);
+  
+    try {
+      const fd = new FormData();
+      fd.append('file', uploadedImage.file); // Flask expects 'file'
+  
+      const url =
+        (import.meta.env?.VITE_API_BASE
+          ? `${import.meta.env.VITE_API_BASE}/predict`
+          : '/api/predict'); // works with Vite proxy if you set it
+  
+          const res = await fetch(`/api/predict`, { method: 'POST', body: fd });
+            
+      // Log basics so we can see what's happening
+      const ct = res.headers.get('content-type') || '';
+      console.log('predict status:', res.status, 'content-type:', ct);
+  
+      // Try to parse JSON if possible; otherwise read text
+      let data;
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.warn('Non-JSON response:', text);
+        if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+        // if 200 but not JSON, show something useful
+        throw new Error('Server returned non-JSON response');
+      }
+  
+      if (!res.ok) {
+        // backend sent JSON error
+        throw new Error(data?.error || `HTTP ${res.status}`);
+      }
+  
+      console.log('predict payload:', data);
+  
+      // Map to UI fields safely
+      const severity = mapUrgencyToSeverity(data?.advice?.urgency);
+      const confidencePct = Math.round((data?.final_confidence ?? 0) * 100);
+            const alts = Array.isArray(data?.per_model_predictions)
+        ? data.per_model_predictions
+            .map((p) => p?.class)
+            .filter((name) => !!name && name !== data?.prediction)
+            .slice(0, 3)
+        : [];
+  
+      setAnalysisResult({
+        condition: data?.prediction || '—',
+        icd10: undefined,
+        confidence: Number.isFinite(confidencePct) ? confidencePct : undefined,
+        severity,
+        description: data?.advice?.short || '',
+        recommendations: [data?.advice?.recommendation].filter(Boolean),
+        areas: [],
+        differentialDx: alts,
+        _raw: data,
       });
-    }, 300);
+  
+      setAnalysisProgress(100);
+    } catch (e) {
+      console.error('analyze error:', e);
+      setError(e?.message || 'Something went wrong during analysis.');
+    } finally {
+      clearInterval(interval);
+      setIsAnalyzing(false);
+    }
   };
+  
 
-  // When analysisResult becomes available, scroll to the analysis section
+  // scroll to results when ready
   useEffect(() => {
     if (analysisResult && analysisRef.current) {
-      // small timeout to allow layout to settle
       setTimeout(() => {
         try {
           analysisRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (e) {
-          // fallback: simple window scroll
+        } catch {
           const top = analysisRef.current.getBoundingClientRect().top + window.scrollY - 20;
           window.scrollTo({ top, behavior: 'smooth' });
         }
@@ -208,9 +152,8 @@ const ImageUpload = () => {
     setUploadedImage(null);
     setAnalysisResult(null);
     setAnalysisProgress(0);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const formatFileSize = (bytes) => {
@@ -223,9 +166,7 @@ const ImageUpload = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
-      {/* Mini preview anchored to top-right when results exist (hidden on small screens) */}
+      {/* Top-right mini preview (only when results exist) */}
       {uploadedImage && analysisResult && (
         <div className="hidden md:block fixed top-16 right-6 z-50">
           <div
@@ -254,12 +195,19 @@ const ImageUpload = () => {
 
       <div>
         <main className="w-full p-6">
-          {/* Breadcrumb removed */}
-          
           <div className="w-full">      
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Skindex Skin Consultation
             </h1>
+
+            {/* Error banner */}
+            {error && (
+              <Alert className="mb-4 border-red-300 bg-red-50">
+                <AlertDescription className="text-red-800">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
             
             <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
               <p className="text-blue-800 text-sm">
@@ -270,7 +218,7 @@ const ImageUpload = () => {
             </div>
 
             <div className="flex flex-col gap-6">
-              {/* Upload Section (main focus) */}
+              {/* Upload Section */}
               <Card className="border-gray-300">
                 <CardHeader className="bg-gray-50 border-b border-gray-300">
                   <CardTitle className="text-base text-gray-900 flex items-center">
@@ -304,7 +252,6 @@ const ImageUpload = () => {
                       </p>
                     </div>
                   ) : (
-                    // Show compact image preview and analyze button when image is uploaded
                     <div className="space-y-4 flex flex-col items-center">
                       <div className="w-64 h-64 border border-gray-300 overflow-hidden">
                         <img src={uploadedImage.preview} alt="preview" className="w-full h-full object-cover" />
@@ -313,6 +260,15 @@ const ImageUpload = () => {
                         <div className="font-medium">{uploadedImage.name}</div>
                         <div>Size: {formatFileSize(uploadedImage.size)}</div>
                       </div>
+
+                      {/* Progress while analyzing */}
+                      {isAnalyzing && (
+                        <div className="w-full">
+                          <Progress value={analysisProgress} className="h-2" />
+                          <p className="text-xs text-gray-600 mt-1">Analyzing…</p>
+                        </div>
+                      )}
+
                       <div className="flex gap-2 w-full">
                         <Button 
                           onClick={handleAnalyze} 
@@ -329,7 +285,8 @@ const ImageUpload = () => {
                   )}
                 </CardContent>
               </Card>
-              {/* Results area: hidden until analysis completes */}
+
+              {/* Results */}
               {analysisResult && (
                 <div ref={analysisRef}>
                   <Card className="border-gray-300">

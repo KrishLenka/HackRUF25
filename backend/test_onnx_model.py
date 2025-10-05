@@ -7,7 +7,7 @@ from pathlib import Path
 from load_onnx_model import ONNXModelWrapper
 
 
-def test_onnx_model(onnx_model_path='models/skin_model.onnx', test_image_path='data/Healthy Skin/1-1-59_6128b3f32ba4b.jpg'):
+def test_onnx_model(onnx_model_path='models/skin_model.onnx', test_image_path='/Users/ayaanfaisal/HackRUF25/backend/data/demo/IMG_8014.jpg'):
     """Test ONNX model with a real image."""
     
     print("="*70)

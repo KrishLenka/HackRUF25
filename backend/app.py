@@ -9,6 +9,15 @@ from PIL import Image
 import numpy as np
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(
+    app,
+    resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}},
+    methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 # TensorFlow / Keras
 import tensorflow as tf
@@ -28,7 +37,7 @@ import onnxruntime as ort
 MODEL_DIR = Path("models")
 TF_MODEL_PATH = MODEL_DIR / "tf_skin_model"    # either SavedModel dir or .h5
 PYTORCH_MODEL_PATH = MODEL_DIR / "pt_skin_model.pth"
-ONNX_MODEL_PATH = MODEL_DIR / "onnx_skin_model.onnx"
+ONNX_MODEL_PATH = MODEL_DIR / "skin_model.onnx"
 
 # Load class names from training (will be auto-populated during training)
 # Default classes for the 25-class skin condition dataset
@@ -434,4 +443,6 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=8000, debug=False)
+
+
