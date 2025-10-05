@@ -13,7 +13,11 @@
     10
   ],
   "opset_version": 14,
+<<<<<<< HEAD
   "export_date": "2025-10-05T09:13:47.994525",
+=======
+  "export_date": "2025-10-05T00:54:24.250245",
+>>>>>>> f7436dbd3169d766c0e48a0abefd2472d1b1b4e6
   "source_model": "models/pt_skin_model.pth",
   "file_size_mb": 17.793100357055664
 }
