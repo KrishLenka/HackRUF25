@@ -5,7 +5,6 @@ import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
 import { Upload, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 
-
 // map backend 'urgency' to a severity label for your UI
 function mapUrgencyToSeverity(urgency) {
   switch ((urgency || '').toLowerCase()) {
@@ -57,32 +56,30 @@ const ImageUpload = () => {
   // Real backend call
   const handleAnalyze = async () => {
     if (!uploadedImage?.file) return;
-  
+
     setIsAnalyzing(true);
     setError('');
     setAnalysisResult(null);
     setAnalysisProgress(5);
-  
+
     const interval = setInterval(() => {
       setAnalysisProgress((p) => (p < 90 ? p + Math.random() * 10 : p));
     }, 250);
-  
+
     try {
       const fd = new FormData();
       fd.append('file', uploadedImage.file); // Flask expects 'file'
-  
+
       const url =
         (import.meta.env?.VITE_API_BASE
           ? `${import.meta.env.VITE_API_BASE}/predict`
-          : '/api/predict'); // works with Vite proxy if you set it
-  
-          const res = await fetch(`/api/predict`, { method: 'POST', body: fd });
-            
-      // Log basics so we can see what's happening
+          : '/api/predict');
+
+      const res = await fetch(`/api/predict`, { method: 'POST', body: fd });
+
       const ct = res.headers.get('content-type') || '';
       console.log('predict status:', res.status, 'content-type:', ct);
-  
-      // Try to parse JSON if possible; otherwise read text
+
       let data;
       if (ct.includes('application/json')) {
         data = await res.json();
@@ -90,27 +87,24 @@ const ImageUpload = () => {
         const text = await res.text();
         console.warn('Non-JSON response:', text);
         if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
-        // if 200 but not JSON, show something useful
         throw new Error('Server returned non-JSON response');
       }
-  
+
       if (!res.ok) {
-        // backend sent JSON error
         throw new Error(data?.error || `HTTP ${res.status}`);
       }
-  
+
       console.log('predict payload:', data);
-  
-      // Map to UI fields safely
+
       const severity = mapUrgencyToSeverity(data?.advice?.urgency);
       const confidencePct = Math.round((data?.final_confidence ?? 0) * 100);
-            const alts = Array.isArray(data?.per_model_predictions)
+      const alts = Array.isArray(data?.per_model_predictions)
         ? data.per_model_predictions
             .map((p) => p?.class)
             .filter((name) => !!name && name !== data?.prediction)
             .slice(0, 3)
         : [];
-  
+
       setAnalysisResult({
         condition: data?.prediction || '—',
         icd10: undefined,
@@ -122,7 +116,7 @@ const ImageUpload = () => {
         differentialDx: alts,
         _raw: data,
       });
-  
+
       setAnalysisProgress(100);
     } catch (e) {
       console.error('analyze error:', e);
@@ -132,7 +126,6 @@ const ImageUpload = () => {
       setIsAnalyzing(false);
     }
   };
-  
 
   // scroll to results when ready
   useEffect(() => {
@@ -165,7 +158,14 @@ const ImageUpload = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative">
+      {/* same warm skin-tone gradient as Home */}
+      <div className="absolute inset-0 -z-10">
+        <div className="h-full w-full bg-gradient-to-b from-rose-100 via-orange-50 to-amber-100" />
+        {/* soft radial glow */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-[40rem] w-[40rem] rounded-full bg-white/40 blur-3xl opacity-50" />
+      </div>
+
       {/* Top-right mini preview (only when results exist) */}
       {uploadedImage && analysisResult && (
         <div className="hidden md:block fixed top-16 right-6 z-50">
@@ -208,9 +208,10 @@ const ImageUpload = () => {
                 </AlertDescription>
               </Alert>
             )}
-            
-            <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
-              <p className="text-blue-800 text-sm">
+
+            {/* Softer instruction box to match palette (optional) */}
+            <div className="bg-rose-50 border border-rose-200 p-4 mb-6">
+              <p className="text-rose-900 text-sm">
                 <strong>Instructions:</strong> Upload images of skin for AI-powered analysis. 
                 Ensure images are well-lit, in focus, and show the entire area of concern. 
                 System supports JPEG, PNG, and TIFF formats up to 10MB.
@@ -222,7 +223,7 @@ const ImageUpload = () => {
               <Card className="border-gray-300">
                 <CardHeader className="bg-gray-50 border-b border-gray-300">
                   <CardTitle className="text-base text-gray-900 flex items-center">
-                    <Upload className="w-5 h-5 mr-2 text-blue-800" />
+                    <Upload className="w-5 h-5 mr-2 text-rose-700" />
                     Image Upload Interface
                   </CardTitle>
                 </CardHeader>
@@ -235,7 +236,7 @@ const ImageUpload = () => {
                       </p>
                       <Button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="bg-blue-800 hover:bg-blue-900 mb-3 px-6 py-3"
+                        className="bg-rose-600 hover:bg-rose-700 mb-3 px-6 py-3"
                       >
                         <FileText className="w-4 h-4 mr-2" />
                         Browse Files
@@ -292,7 +293,7 @@ const ImageUpload = () => {
                   <Card className="border-gray-300">
                     <CardHeader className="bg-gray-50 border-b border-gray-300">
                       <CardTitle className="text-base text-gray-900 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-blue-800" />
+                        <FileText className="w-5 h-5 mr-2 text-rose-700" />
                         Analysis Results & Diagnostic Report
                       </CardTitle>
                     </CardHeader>

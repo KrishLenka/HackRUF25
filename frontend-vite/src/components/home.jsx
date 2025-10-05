@@ -1,4 +1,4 @@
-// src/pages/Home.jsx
+// src/components/ui/Home.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
