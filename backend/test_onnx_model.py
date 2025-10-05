@@ -7,7 +7,7 @@ from pathlib import Path
 from load_onnx_model import ONNXModelWrapper
 
 
-def test_onnx_model(onnx_model_path='models/skin_model.onnx', test_image_path='data/Healthy Skin/1-1-59_6128b3f32ba4b.jpg'):
+def test_onnx_model(onnx_model_path='models/skin_model.onnx', test_image_path='data/demo/IMG_9948.jpg'):
     """Test ONNX model with a real image."""
     
     print("="*70)
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test ONNX model with a specific image')
     parser.add_argument('--model', type=str, default='models/skin_model.onnx',
                        help='Path to ONNX model (default: models/skin_model.onnx)')
-    parser.add_argument('--image', type=str, default='data/Healthy Skin/1-1-59_6128b3f32ba4b.jpg',
+    parser.add_argument('--image', type=str, default='data/demo/IMG_9948.jpg',
                        help='Path to test image')
     
     args = parser.parse_args()

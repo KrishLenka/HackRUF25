@@ -31,33 +31,18 @@ PYTORCH_MODEL_PATH = MODEL_DIR / "pt_skin_model.pth"
 ONNX_MODEL_PATH = MODEL_DIR / "onnx_skin_model.onnx"
 
 # Load class names from training (will be auto-populated during training)
-# Default classes for the 25-class skin condition dataset
+# Default classes for the 10-class skin condition dataset
 CLASS_NAMES = [
-    "Acne and Rosacea Photos",
-    "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
-    "Atopic Dermatitis Photos",
-    "Bullous Disease Photos",
-    "Cellulitis Impetigo and other Bacterial Infections",
-    "Eczema Photos",
-    "Exanthems and Drug Eruptions",
-    "Hair Loss Photos Alopecia and other Hair Diseases",
-    "Healthy_Skin",
-    "Herpes HPV and other STDs Photos",
-    "Light Diseases and Disorders of Pigmentation",
-    "Lupus and other Connective Tissue diseases",
-    "Melanoma Skin Cancer Nevi and Moles",
-    "Nail Fungus and other Nail Disease",
-    "Poison Ivy Photos and other Contact Dermatitis",
-    "Psoriasis pictures Lichen Planus and related diseases",
-    "Scabies Lyme Disease and other Infestations and Bites",
-    "Seborrheic Keratoses and other Benign Tumors",
-    "Systemic Disease",
-    "Tinea Ringworm Candidiasis and other Fungal Infections",
-    "Urticaria Hives",
-    "Vascular Tumors",
-    "Vasculitis Photos",
-    "Warts Molluscum and other Viral Infections",
-    "vitiligo"
+    "Actinic keratosis",
+    "Atopic Dermatitis",
+    "Benign keratosis",
+    "Dermatofibroma",
+    "Healthy Skin",
+    "Melanocytic nevus",
+    "Melanoma",
+    "Squamous cell carcinoma",
+    "Tinea Ringworm Candidiasis",
+    "Vascular lesion"
 ]
 IMG_SIZE = 224
 # Automatically detect best available device: NVIDIA CUDA > Apple Silicon MPS > CPU

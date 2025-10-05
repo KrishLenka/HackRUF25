@@ -1,6 +1,6 @@
 {
   "model_name": "efficientnet_b0",
-  "num_classes": 25,
+  "num_classes": 10,
   "img_size": 224,
   "input_shape": [
     1,
@@ -10,10 +10,10 @@
   ],
   "output_shape": [
     1,
-    25
+    10
   ],
   "opset_version": 14,
-  "export_date": "2025-10-04T23:30:35.218719",
+  "export_date": "2025-10-05T09:13:47.994525",
   "source_model": "models/pt_skin_model.pth",
-  "file_size_mb": 17.82245445251465
+  "file_size_mb": 17.793100357055664
 }
