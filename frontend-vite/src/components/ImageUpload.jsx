@@ -22,6 +22,59 @@ function mapUrgencyToSeverity(urgency) {
   }
 }
 
+// Simple, hard-coded summaries for now
+function buildReport(prediction, confidencePct) {
+  const label = (prediction || '').toLowerCase();
+
+  // Healthy
+  if (label.includes('healthy')) {
+    return {
+      condition: 'Healthy Skin',
+      severity: 'Low',
+      description:
+        'Your photo appears consistent with healthy skin. Continue good skincare habits and sun protection.',
+      recommendations: [
+        'Use broad-spectrum SPF 30+ daily',
+        'Moisturize regularly (fragrance-free)',
+        'Monitor for new or changing spots (ABCDE rule)',
+      ],
+    };
+  }
+
+  // Dermatitis (match several possible labels)
+  if (
+    label.includes('dermatitis') ||
+    label.includes('eczema') ||
+    label.includes('atopic')
+  ) {
+    return {
+      condition: 'Dermatitis (Eczema)',
+      severity: 'Moderate',
+      description:
+        'Findings suggest an eczematous pattern. This often presents with itch and dry, inflamed patches.',
+      recommendations: [
+        'Apply fragrance-free emollients liberally, 2–3x/day',
+        'Short, lukewarm showers; gentle non-soap cleansers',
+        'Consider OTC 1% hydrocortisone for flares (short courses)',
+        'Avoid known triggers (harsh detergents, fragrances, wool)',
+      ],
+    };
+  }
+
+  // Fallback generic advice
+  return {
+    condition: prediction || 'Possible skin condition',
+    severity: 'Moderate',
+    description:
+      'Consider evaluation by a clinician for personalized guidance based on your symptoms and history.',
+    recommendations: [
+      'Avoid picking/scratching',
+      'Use a simple, fragrance-free moisturizer twice daily',
+      'Seek dermatology advice if symptoms persist or worsen',
+    ],
+  };
+}
+
 const ImageUpload = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -96,8 +149,13 @@ const ImageUpload = () => {
 
       console.log('predict payload:', data);
 
-      const severity = mapUrgencyToSeverity(data?.advice?.urgency);
       const confidencePct = Math.round((data?.final_confidence ?? 0) * 100);
+      const safeConfidence = Number.isFinite(confidencePct) ? confidencePct : 0;
+
+      // Build our hard-coded report for now
+      const report = buildReport(data?.prediction, safeConfidence);
+
+      // Alternates (optional)
       const alts = Array.isArray(data?.per_model_predictions)
         ? data.per_model_predictions
             .map((p) => p?.class)
@@ -106,12 +164,11 @@ const ImageUpload = () => {
         : [];
 
       setAnalysisResult({
-        condition: data?.prediction || '—',
-        icd10: undefined,
-        confidence: Number.isFinite(confidencePct) ? confidencePct : undefined,
-        severity,
-        description: data?.advice?.short || '',
-        recommendations: [data?.advice?.recommendation].filter(Boolean),
+        condition: report.condition,
+        confidence: safeConfidence,
+        severity: report.severity,
+        description: report.description,
+        recommendations: report.recommendations,
         areas: [],
         differentialDx: alts,
         _raw: data,
@@ -306,20 +363,31 @@ const ImageUpload = () => {
                           </AlertDescription>
                         </Alert>
 
+                        {/* Confidence notices */}
+                        {typeof analysisResult.confidence === 'number' && analysisResult.confidence < 40 && (
+                          <Alert className="border-yellow-300 bg-yellow-50">
+                            <AlertTriangle className="h-4 w-4 text-yellow-700" />
+                            <AlertDescription className="text-yellow-800">
+                              <strong>Low confidence:</strong> Our model is uncertain about this image.
+                              {analysisResult.confidence < 20 && (
+                                <> Please try uploading a new, clearer image (good lighting, in focus, full area).</>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+
                         <div className="border border-gray-300 p-4 bg-white">
-                          <h3 className="font-bold text-gray-900 mb-3 border-b border-gray-300 pb-2">PRIMARY DIAGNOSIS</h3>
+                          <h3 className="font-bold text-gray-900 mb-3 border-b border-gray-300 pb-2">PRIMARY SUMMARY</h3>
                           <div className="grid grid-cols-2 gap-4 mb-3">
                             <div>
                               <p className="text-gray-700"><strong>Condition:</strong></p>
                               <p className="font-medium">{analysisResult.condition ?? 'N/A'}</p>
                             </div>
                             <div>
-                              <p className="text-gray-700"><strong>ICD-10 Code:</strong></p>
-                              <p className="font-medium">{analysisResult.icd10 ?? '—'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-700"><strong>Confidence Level:</strong></p>
-                              <p className="font-medium">{typeof analysisResult.confidence !== 'undefined' ? `${analysisResult.confidence}%` : '—'}</p>
+                              <p className="text-gray-700"><strong>Confidence:</strong></p>
+                              <p className="font-medium">
+                                {typeof analysisResult.confidence === 'number' ? `${analysisResult.confidence}%` : '—'}
+                              </p>
                             </div>
                             <div>
                               <p className="text-gray-700"><strong>Severity:</strong></p>
@@ -332,32 +400,27 @@ const ImageUpload = () => {
                           </div>
                         </div>
 
+                        {/* Advice list (bulleted) */}
                         <div className="border border-gray-300 p-4 bg-white">
-                          <h3 className="font-bold text-gray-900 mb-2">ANATOMICAL LOCATIONS</h3>
+                          <h3 className="font-bold text-gray-900 mb-2">ADVICE</h3>
                           <ul className="list-disc list-inside text-gray-800 space-y-1">
-                            {(analysisResult.areas || []).map((area, index) => (
-                              <li key={index}>{area}</li>
+                            {(analysisResult.recommendations || []).map((rec, i) => (
+                              <li key={i}>{rec}</li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="border border-gray-300 p-4 bg-white">
-                          <h3 className="font-bold text-gray-900 mb-2">TREATMENT RECOMMENDATIONS</h3>
-                          <ol className="list-decimal list-inside text-gray-800 space-y-2">
-                            {(analysisResult.recommendations || []).map((rec, index) => (
-                              <li key={index} className="text-sm">{rec}</li>
-                            ))}
-                          </ol>
-                        </div>
-
-                        <div className="border border-gray-300 p-4 bg-white">
-                          <h3 className="font-bold text-gray-900 mb-2">DIFFERENTIAL DIAGNOSIS</h3>
-                          <ul className="list-disc list-inside text-gray-800 space-y-1">
-                            {(analysisResult.differentialDx || []).map((dx, index) => (
-                              <li key={index}>{dx}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        {/* Differential (optional) */}
+                        {Array.isArray(analysisResult.differentialDx) && analysisResult.differentialDx.length > 0 && (
+                          <div className="border border-gray-300 p-4 bg-white">
+                            <h3 className="font-bold text-gray-900 mb-2">DIFFERENTIAL</h3>
+                            <ul className="list-disc list-inside text-gray-800 space-y-1">
+                              {analysisResult.differentialDx.map((dx, index) => (
+                                <li key={index}>{dx}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
                         <Alert className="border-yellow-400 bg-yellow-50">
                           <AlertTriangle className="h-4 w-4 text-yellow-700" />

@@ -29,7 +29,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="mt-3 text-xs text-gray-600">
+       <p className="mt-12 text-xs text-gray-600">
           Demo only — not a medical diagnosis. Always consult a clinician for advice.
         </p>
       </section>
