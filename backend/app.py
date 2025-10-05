@@ -56,8 +56,8 @@ CLASS_NAMES = [
     "Urticaria Hives",
     "Vascular Tumors",
     "Vasculitis Photos",
-    "vitiligo",
-    "Warts Molluscum and other Viral Infections"
+    "Warts Molluscum and other Viral Infections",
+    "vitiligo"
 ]
 IMG_SIZE = 224
 # Automatically detect best available device: NVIDIA CUDA > Apple Silicon MPS > CPU

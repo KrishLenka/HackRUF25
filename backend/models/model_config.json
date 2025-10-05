@@ -5,7 +5,7 @@
   "batch_size": 32,
   "learning_rate": 0.0001,
   "num_epochs": 1,
-  "best_val_acc": 42.20365950676213,
+  "best_val_acc": 40.05568814638027,
   "classes": [
     "Acne and Rosacea Photos",
     "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",

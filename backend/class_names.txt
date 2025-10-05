@@ -22,5 +22,4 @@ Urticaria Hives
 Vascular Tumors
 Vasculitis Photos
 Warts Molluscum and other Viral Infections
-train
 vitiligo
