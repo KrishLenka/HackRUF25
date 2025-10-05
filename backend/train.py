@@ -32,14 +32,14 @@ class Config:
     
     # Model
     model_name = "efficientnet_b0"  # can be changed to efficientnet_b3, resnet50, etc.
-    num_classes = 25  # 25 skin conditions (adjust if different)
+    num_classes = 10  # 10 skin conditions
     img_size = 224
     pretrained = True
     
     # Training
     batch_size = 32
     num_epochs = 50
-    learning_rate = 1e-4
+    learning_rate = 5e-5
     weight_decay = 1e-4
     num_workers = 4
     

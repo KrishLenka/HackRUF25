@@ -24,7 +24,7 @@ def export_model_to_onnx(
     model_path,
     onnx_path,
     model_name="efficientnet_b0",
-    num_classes=25,
+    num_classes=10,
     img_size=224,
     opset_version=14,
     verify=True
@@ -356,7 +356,7 @@ def main():
                        help='Output ONNX model path')
     parser.add_argument('--model-name', type=str, default='efficientnet_b0',
                        help='Model architecture name')
-    parser.add_argument('--num-classes', type=int, default=25,
+    parser.add_argument('--num-classes', type=int, default=10,
                        help='Number of output classes')
     parser.add_argument('--img-size', type=int, default=224,
                        help='Input image size')
