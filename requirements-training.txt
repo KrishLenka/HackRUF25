@@ -29,3 +29,7 @@ pyyaml>=6.0
 
 # Utilities
 python-dotenv>=1.0.0
+
+# ONNX (for model export and deployment)
+onnx>=1.14.0
+onnxruntime>=1.16.0
