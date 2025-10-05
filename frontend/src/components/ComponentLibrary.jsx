@@ -16,7 +16,6 @@ import {
   AlertCircle,
   CheckCircle,
   Info,
-  Home as HomeIcon,
   MessageCircle,
   Library
 } from 'lucide-react';
@@ -35,8 +34,8 @@ const Header = () => {
       
       {/* Main Header */}
   <div className="w-full px-4">
-          <div className="flex items-center justify-between py-4">
-            <Link to="/home" className="flex items-center">
+    <div className="flex items-center justify-between py-4">
+            <div className="flex items-center">
               <div className="w-12 h-12 bg-blue-800 flex items-center justify-center mr-4">
                 <Activity className="w-6 h-6 text-white" />
               </div>
@@ -48,40 +47,26 @@ const Header = () => {
                   Your trusted AI dermatology consultant
                 </p>
               </div>
-            </Link>
+            </div>
           </div>
         
         {/* Navigation */}
         <nav className="border-t border-gray-300 py-2">
           <div className="flex space-x-8 text-sm">
-            <Link 
-              to="/home" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-transparent hover:border-blue-800"
-            >
-              <HomeIcon className="w-4 h-4 inline mr-2" />
-              Home
-            </Link>
-            <Link 
-              to="/" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-transparent hover:border-blue-800"
-            >
-              <Upload className="w-4 h-4 inline mr-2" />
-              Image Analysis
-            </Link>
-            <Link 
-              to="/assistant" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-transparent hover:border-blue-800"
-            >
-              <MessageCircle className="w-4 h-4 inline mr-2" />
-              Clinical Assistant
-            </Link>
-            <Link 
-              to="/library" 
-              className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-blue-800"
-            >
-              <Library className="w-4 h-4 inline mr-2" />
-              Component Library
-            </Link>
+              {/* Home page removed intentionally */}
+              <Link
+                to="/"
+                className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-transparent hover:border-blue-800"
+              >
+                <Upload className="w-4 h-4 inline mr-2" />
+                Image Analysis
+              </Link>
+              {/* Clinical Assistant removed */}
+              <Link
+                to="/library"
+                className="text-blue-800 hover:text-blue-900 font-medium py-2 border-b-2 border-blue-800"
+              >
+              </Link>
           </div>
         </nav>
       </div>
