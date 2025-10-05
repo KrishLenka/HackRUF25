@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import ComponentLibrary from "./components/ComponentLibrary";
 import ImageUpload from "./components/ImageUpload";
 import { Activity, Upload, MessageCircle, Library } from "lucide-react";
+import Home from "@/components/ui/Home";   // ← points to the file you just made
+
 
 // Simple, single Header component (no breadcrumb, no search box)
 const Header = () => (
@@ -36,7 +38,11 @@ const Header = () => (
   </header>
 );
 
-/* Home page removed - app defaults to ImageUpload at '/' */
+
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/analyze" element={<ImageUpload />} />
+</Routes>
 
 function App() {
   return (
