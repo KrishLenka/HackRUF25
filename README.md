@@ -1,6 +1,6 @@
 # HackRUF25 - Skin Classification Project
 
-AI-powered skin lesion classification using deep learning.
+AI-powered skin lesion classification using deep learning. 
 
 ## 🚀 Quick Start
 
